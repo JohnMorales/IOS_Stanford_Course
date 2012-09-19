@@ -30,6 +30,10 @@
     [self.programStack addObject:[NSNumber numberWithDouble:operand]];
 }
 
+-(void)pushVariable:(NSString *)variable
+{    
+    [self.programStack addObject:variable];
+}
 
 -(double)performOperation:(NSString *)operation
 {
@@ -37,13 +41,62 @@
     return [CalculatorBrain runProgram:self.program];
 }
 
++(NSSet *)variablesUsedInProgram:(id)program
+{
+    NSMutableArray* stack = program;
+    NSArray* variables = [stack filteredArrayUsingPredicate:[NSPredicate predicateWithFormat: @"SELF in %@", [NSArray arrayWithObjects:@"x", @"a", @"b", nil]]];
+    if ([variables count] > 0)
+    {
+        return [NSSet setWithArray:variables];
+    }
+    return nil;
+}
+
 -(id) program 
 {
     return [self.programStack copy];
 }
+
 +(NSString *)descriptionOfProgram:(id)program  
 {
-    return @"Implement this in assignment #2";
+    NSMutableArray * stack;
+    if ([program isKindOfClass:[NSArray class]]) {
+        stack = [program mutableCopy];
+    }
+    NSString * description = @"";
+    while ([stack count] != 0) {
+        description = [description stringByAppendingFormat:@"%@, ", [self describeProgram:stack]];    
+    }
+    return description;
+}
+
++(NSString *)describeProgram:(NSMutableArray *)stack
+{
+    NSString * result = @"";
+    id topOfStack = [stack lastObject];
+    if (topOfStack) [stack removeLastObject];
+    
+    if ([topOfStack isKindOfClass:[NSNumber class]]) {
+        result = [NSString stringWithFormat:@"%@", topOfStack];
+    }
+    else if ([topOfStack isKindOfClass:[NSString class]]) {
+        NSString *operation = topOfStack;
+        double numberOfOperands = [self getNumberOfOperands:operation]; 
+        if (numberOfOperands == 1) {
+            result = [NSString stringWithFormat:@"%@(%@)", operation, [self describeProgram:stack]];
+        }else if (numberOfOperands == 2) {
+            result = [NSString stringWithFormat:@"%@ %@ %@", [self describeProgram:stack], operation, [self describeProgram:stack]];
+        }else if (numberOfOperands == 0) {
+            return operation;
+        }
+    }
+    return result;
+}
+
++(double) getNumberOfOperands:(NSString *)operation
+{
+    NSSet *functions = [NSSet setWithObjects:@"x", @"a", @"b", nil];
+    return 0;
 }
 
 +(double) popOperationOffStack:(NSMutableArray *)stack

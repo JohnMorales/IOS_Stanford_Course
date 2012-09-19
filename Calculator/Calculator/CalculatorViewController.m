@@ -42,10 +42,10 @@
 - (IBAction)enterPressed {
     [self.brain pushOperand:[self.display.text doubleValue]];
     self.userIsInTheMiddleOfEnteringNumber = NO;
-    [self updateStackView:self.display.text];
+    [self updateStackView];
 }
-- (void) updateStackView:(NSString *)value {
-    self.stackview.text = [self.stackview.text stringByAppendingFormat:@" %@", value];
+- (void) updateStackView {
+    self.stackview.text = [CalculatorBrain descriptionOfProgram:[self.brain program]];
 }
 - (IBAction)operationPressed:(UIButton *)sender {
     if (self.userIsInTheMiddleOfEnteringNumber)
@@ -53,9 +53,16 @@
         [self enterPressed];
     }
     NSString *operation = sender.currentTitle;
-    double result = [self.brain performOperation:operation];
-    [self updateStackView:operation];
-    self.display.text = [NSString stringWithFormat:@"%g", result];
+    NSSet *variables = [NSSet setWithObjects:@"x", @"a", @"b", nil];
+    if ([variables containsObject:operation])
+    {
+        [self.brain pushVariable:operation];
+    }
+    else {
+        double result = [self.brain performOperation:operation];
+        [self updateStackView];
+        self.display.text = [NSString stringWithFormat:@"%g", result];
+    }
 }
 - (IBAction)decimalPressed:(id)sender {
     if ([self.display.text rangeOfString:@"."].location == NSNotFound)
