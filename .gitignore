@@ -113,3 +113,7 @@ xcuserdata
 # ...none. Everything is now explained.
 
 *.xcbkptlist
+
+Calculator/Calculator.xcodeproj/project.xcworkspace/xcuserdata/jmorales.xcuserdatad/UserInterfaceState.xcuserstate
+
+Calculator/Calculator.xcodeproj/xcuserdata/jmorales.xcuserdatad/xcdebugger/Breakpoints.xcbkptlist
