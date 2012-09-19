@@ -63,11 +63,11 @@
     if ([program isKindOfClass:[NSArray class]]) {
         stack = [program mutableCopy];
     }
-    NSString * description = @"";
+    NSMutableArray * descriptions = [[NSMutableArray alloc] init];
     while ([stack count] != 0) {
-        description = [description stringByAppendingFormat:@"%@, ", [self describeProgram:stack]];    
+        [descriptions addObject:[self describeProgram:stack]];
     }
-    return description;
+    return [descriptions componentsJoinedByString:@","];
 }
 
 +(NSString *)describeProgram:(NSMutableArray *)stack
@@ -85,7 +85,14 @@
         if (numberOfOperands == 1) {
             result = [NSString stringWithFormat:@"%@(%@)", operation, [self describeProgram:stack]];
         }else if (numberOfOperands == 2) {
-            result = [NSString stringWithFormat:@"%@ %@ %@", [self describeProgram:stack], operation, [self describeProgram:stack]];
+            NSString *nextOperation = [stack lastObject];
+            NSString *right = [self describeProgram:stack];
+            if ([self isOperation:nextOperation] && [self getPrecedence:operation] > [self getPrecedence:nextOperation])
+                result = [NSString stringWithFormat:@"%@ %@ (%@)",[self describeProgram:stack] , operation, right];
+            else if ([self isOperation:nextOperation] && [self getPrecedence:nextOperation] > [self getPrecedence:operation])
+                result = [NSString stringWithFormat:@"(%@) %@ %@",[self describeProgram:stack], operation, right];
+            else
+                result = [NSString stringWithFormat:@"%@ %@ %@",[self describeProgram:stack] , operation, right];
         }else if (numberOfOperands == 0) {
             return operation;
         }
@@ -93,9 +100,34 @@
     return result;
 }
 
++(bool)isOperation:(NSString*)operation
+{
+    NSSet *operations = [NSSet setWithObjects:@"*", @"/", @"+", @"-", nil];
+    if ([operations containsObject:operation])
+        return YES;
+    return NO;
+}
+
++(double)getPrecedence:(NSString *)operation
+{
+    NSSet *additions = [NSSet setWithObjects:@"-", @"+", nil];
+    if ([additions containsObject:operation])
+        return 1;
+    NSSet *multiplication = [NSSet setWithObjects:@"/", @"*", nil];
+    if ([multiplication containsObject:operation])
+        return 2;
+    return 3;
+}
+
+
 +(double) getNumberOfOperands:(NSString *)operation
 {
-    NSSet *functions = [NSSet setWithObjects:@"x", @"a", @"b", nil];
+    NSSet *functions = [NSSet setWithObjects:@"sin", @"cos", @"sqrt", nil];
+    if ([functions containsObject:operation])
+        return 1;
+    NSSet *operations = [NSSet setWithObjects:@"*", @"/", @"+", @"-", nil];
+    if ([operations containsObject:operation])
+        return 2;
     return 0;
 }
 
@@ -150,6 +182,6 @@
 }
 
 -(void)clearOperands {
-    [self.program removeAllObjects];
+    [_programStack removeAllObjects];
 }
 @end
